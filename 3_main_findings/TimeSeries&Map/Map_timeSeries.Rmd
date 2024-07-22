@@ -1,0 +1,307 @@
+---
+title: "data visualization for map and time series"
+output: github_document
+---
+```{r, message=FALSE}
+library(gapminder)
+library(mapdata)
+library(tidyverse) 
+library(ggmap)
+library(readr)
+library(Ecfun)
+library(ggrepel)
+# TS
+library(grid) # for text in TS
+library(lubridate)
+library(zoo)
+library(ggpubr)
+
+# read in master dataset
+weather <- read.csv("https://www.dropbox.com/s/afzhasp96hvli1t/master_12_17.csv?dl=1")
+```
+
+### Time Series
+join the State name and create monthly weather data
+Colorado's annual temperature fluctuates the most, followed by Florida's and California's, which fluctuate the least, according to the graph.
+```{r, message=FALSE}
+# convert date variables into Date format 
+weather$YMdate <- as.Date(weather$YMdate)
+weather$date <- as.Date(weather$date)
+monthly <- weather %>% 
+  select("ParkName", "State", "City","RecreationVisits", "avg_temperature","YMdate","avg_humidity","avg_wind_speed") %>% 
+  unique()
+  
+# la:3; SF :4; Miami:3; Denver:4
+
+by_cities <- monthly %>% 
+  group_by(State, City,avg_temperature,avg_humidity,avg_wind_speed,  YMdate) %>% 
+  summarise(avg_visits_city = mean(RecreationVisits, rm.na = TRUE))
+
+```
+#### 1. Monthly
+```{r, message=FALSE, warning=FALSE}
+# prepare for the texts for two kind of lines
+## temperature
+grob1 <- grobTree(textGrob("temperature", x=0,  y=0.94, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+grob2<- grobTree(textGrob("visitaion", x=0,  y=0.09, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+
+by_cities %>% 
+ggplot(aes(x = YMdate, group = City, color = State)) +
+  geom_line(aes(y = avg_visits_city/5000), size = 1)+
+  geom_point(aes(y =avg_temperature),alpha = 0.8,size = 0.4) +
+  geom_line(aes(y =avg_temperature), alpha = 0.5) +
+  scale_y_continuous(name = "temperature(F°)",sec.axis = sec_axis(~.*5 , name="visitation (by 1K)"))+
+  labs(title = "Monthly Temperature and Visitation Change in 3 States (2012 - 2017)",
+       x = "time") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  facet_grid(rows = vars(City))+  
+  theme_light() +
+  theme(panel.grid.major = element_blank())+
+  annotation_custom(grob1)+annotation_custom(grob2)
+# ggsave("visit_temp.png")
+
+
+## humidity
+grob1 <- grobTree(textGrob("humidity", x=0,  y=0.93, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+grob2<- grobTree(textGrob("visitaion", x=0,  y=0.09, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+
+by_cities %>% 
+ggplot(aes(x = YMdate, group = City, color = State)) +
+  geom_point(aes(y =avg_humidity),alpha = 0.8,size = 0.4) +
+  geom_line(aes(y =avg_humidity), alpha = 0.5) +
+  geom_line(aes(y = avg_visits_city/5000), size = 1)+
+  theme_light() +
+  scale_y_continuous(name = "humidity(%)",sec.axis = sec_axis(~.*5 , name="visitation (by 1K)"))+
+  labs(title = "Monthly Humidity and Visitation Change in 3 States (2012 - 2017)",
+       x = "time") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  facet_grid(rows = vars(City))+ 
+  theme(panel.grid.major = element_blank())+
+  annotation_custom(grob1)+annotation_custom(grob2)
+# ggsave("vist_humidity.png")
+
+
+## wind speed
+grob1 <- grobTree(textGrob("wind", x=0,  y=0.93, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+grob2<- grobTree(textGrob("visitaion", x=0,  y=0.09, hjust=0,
+  gp=gpar(col="black", fontsize=11, fontface="italic", alpha = 0.5)))
+
+by_cities %>% 
+ggplot(aes(x = YMdate, group = City)) +
+  geom_point(aes(y =avg_wind_speed, color = State),alpha = 0.8,size = 0.4) +
+  geom_line(aes(y =avg_wind_speed, color = State), alpha = 0.5) +
+  geom_line(aes(y = avg_visits_city/100000, color = State), size = 1)+
+  theme_light() +
+  scale_y_continuous(name = "windspeed",sec.axis = sec_axis(~.*10 , name="visitation (by 10K)"))+
+  labs(title = "Monthly Wind Speed and Visitation Change in 3 States (2012 - 2017)",
+       x = "time") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+   
+  facet_grid(rows = vars(City))+  
+  theme(panel.grid.major = element_blank())+
+  annotation_custom(grob1)+annotation_custom(grob2)
+
+# ggsave("vist_windspeed.png")
+
+```
+
+#### 2.Quarterly
+Now let's see the quarterly temperature comparison between cities and the three states.
+As we guessed, the average temperature of FL is the highest, followed by CA, and CO is the lowest.
+```{r, message=FALSE, warning=FALSE}
+weather_qtr <- weather %>% 
+  mutate(quarter = quarter(date), year = year(date)) %>% 
+  group_by(year, quarter,State, City) %>% 
+  summarise(quarterly_temperature = round(mean(avg_temperature, na.rm = TRUE),2),
+            quarterly_wind_speed = round(mean(avg_wind_speed, na.rm = TRUE),2),
+            quarterly_humidity = round(mean(avg_humidity, na.rm = TRUE),2)) %>% 
+  unite("tmp", c("year", "quarter"), sep = "-") %>% 
+  mutate(date = as.Date(as.yearqtr(tmp)))
+
+## temperature
+p1 = ggplot(weather_qtr,aes(x =date, y = quarterly_temperature, group = City, color = State)) +
+  geom_point(aes(shape=City), alpha = 0.8, size = 2, show.legend = FALSE) +
+  geom_line(alpha = 0.5, show.legend = FALSE) +
+  labs(title = "Quarterly Temperature Change in 4 cities",
+       x = "year by quarter",
+       y = "quarterly temperature") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme_minimal() 
+
+## humidity
+p2 = ggplot(weather_qtr,aes(x =date, y = quarterly_humidity, group = City, color = State)) +
+  geom_point(aes(shape=City), alpha = 0.8, size = 2) +
+  geom_line(alpha = 0.5) +
+  labs(title = "Quarterly Humidity Change in 4 cities",
+       x = "year by quarter",
+       y = "quarterly humidity") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme_minimal() 
+
+## windspeed
+p3 = ggplot(weather_qtr,aes(x =date, y = quarterly_wind_speed, group = City, color = State)) +
+  geom_point(aes(shape=City), alpha = 0.8, size = 2) +
+  geom_line(alpha = 0.5) +
+  labs(title = "Quarterly Wind Speed Change in 4 cities",
+       x = "year by quarter",
+       y = "quarterly wind speed") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme_minimal() 
+# ggsave("quarterly_windspeed.png", width = 6, height = 4)
+
+re = ggarrange(p1, p2,p3, nrow = 2, ncol = 2)
+re 
+# ggsave("quarterly_TS.png",re, dpi = "retina",width = 12,limitsize = FALSE)
+```
+
+### Maps
+there is no benefits containing all the data we'll use below in our master dataset, because our master dataset is large already and we will not use such data to do furtuer analysis.
+```{r, message=FALSE, warning=FALSE}
+# load in raw data because our mater data contains only 14 parks we are interested in
+loc_park <- read.csv("parks.csv")
+all_park <- read.csv("National Parks Visitation Data.csv")
+
+all_park$RecreationVisits <- asNumericChar(all_park$RecreationVisits)
+
+loc_park[loc_park$Park.Name == "Death Valley National Park","State"] = "CA"
+
+park_vis_17 <- all_park %>% filter(Year == 2017) %>% 
+  group_by(Year,ParkName, UnitCode, State) %>% 
+  summarise(annual_vis = round(mean(RecreationVisits, rm.na = TRUE), 2)) %>% 
+  left_join(loc_park, by = c("UnitCode" = "Park.Code", "State" = "State")) %>% 
+  na.omit()
+```
+
+
+####park visitaion map in 2017
+```{r, message=FALSE, warning=FALSE}
+# regular maps
+# comment filter to draw all parks in the states
+ 
+park_vis_17 %>% 
+  # filter(State %in% c("CA","CO","FL")) %>% 
+  ggplot(aes(x = Longitude, y = Latitude)) +
+    borders("state") +
+    xlim(-125, -65)+ ylim(25,50)+
+    scale_colour_gradient(low = "sky blue", high = "black")+
+    geom_point(aes(color = annual_vis), size = 3) +
+    coord_quickmap()+
+    labs(title = "2017 Annual Park Visition", colour="visition", x ="Longitute")+
+    theme_minimal()
+
+# ggsave("all_park_map.png")
+# ggsave("4_park_map.png")
+```
+
+#### google maps
+please use your google map api key for this part, `google_api_key`
+```{r, data preparation, message=FALSE, warning=FALSE}
+google_api_key = "xxxx"
+register_google(key = google_api_key) 
+
+bio <- read.csv("https://www.dropbox.com/s/f9yfrim8h9g88xx/final_weather_biodiversity?dl=1")
+new_bio_bird <- bio %>% 
+  select("Park.Code", "Park.Name", "State","Latitude", "Longitude", "Category", "n", "city") %>% 
+  distinct() %>% 
+  filter(Category == "Bird" )
+
+new_bio_bird[new_bio_bird$Park.Name == "Death Valley", "State"] = "California"
+
+# mammal
+new_bio_mammal <- bio %>% 
+  select("Park.Code", "Park.Name", "State","Latitude", "Longitude", "Category", "n", "city") %>% 
+  distinct() %>% 
+  filter(Category == "Mammal" )
+
+new_bio_mammal[new_bio_mammal$Park.Name == "Death Valley", "State"] = "California"
+
+```
+
+
+
+#### 1. biodiversity & visitaion 2017
+Tried to use the data generated above, but it's hard to draw two legend with 3 different data. Thus, I transformed and combined the three data in to one by rows. Multiply mammal and bird amount by 1000 to ensure color show the correct relationship between biodiversity and visitation, since biodiversity values are in 100 magnitude but visitation values are in 100k magnitude.
+Here we use different shapes indicate bird, mammal and visitation, while the color refers to the number of each value. Red means more and blue means less.
+
+
+##### final map just for visitition
+```{r, warnings = FALSE}
+us_map <- get_map("Unitd States", zoom = 4, maptype = "terrain")
+
+
+# reshape the df for drawing plot
+park_vis_17_3 <- park_vis_17 %>% filter(State %in% c("CA","CO","FL")) %>% 
+  mutate( Category = "Park") %>% 
+  rename(Park.Code = UnitCode, n = annual_vis) %>% na.omit() %>% 
+  ungroup() %>%
+  select(-c(Year, Acres, ParkName)) 
+
+park_vis_17_3[park_vis_17_3$State == "CA","State"] = "California"
+park_vis_17_3[park_vis_17_3$State == "CO","State"] = "Colorado"
+park_vis_17_3[park_vis_17_3$State == "FL","State"] = "Florida"
+
+bio_bird_all <- new_bio_bird %>% filter(State %in% c("California","Colorado","Florida")) %>% na.omit() %>% select(-c(city))
+bio_mammal_all <- new_bio_mammal%>% filter(State %in% c("California","Colorado","Florida")) %>% na.omit()%>% select(-c(city))
+all_data <- park_vis_17_3 %>% 
+  rbind(bio_bird_all) %>% 
+  rbind(bio_mammal_all)
+
+
+label_data <- all_data %>% filter(Category == "Mammal")
+
+park_data = all_data %>% filter(Category == "Park")
+
+p_park <- ggmap(us_map) +
+  scale_x_continuous( limits = c(-126 , -78 ), expand = c( 0 , 0 )   )+
+  scale_y_continuous( limits = c( 22.5 , 43 ), expand = c( 0 , 0 ) )+
+  geom_point(data = park_data, aes(x = Longitude, y = Latitude, colour = n), size = 4)+
+  scale_colour_gradient(low = "blue", high = "red", name="visits",breaks = c(min(park_data$n),max(park_data$n)),labels = c("4.5k","370k"))+
+  geom_label_repel(data = label_data, aes(x = Longitude, y = Latitude), 
+                   label = label_data$Park.Name, size = 3,alpha = 1, 
+                   label.size = NA, label.padding=0.07, force = 20 )+
+  theme_void() + 
+  ggtitle("Park Visitation for all 3 states") 
+
+p_park
+
+# ggsave("pak_vis.png", dpi = "retina")
+
+
+
+```
+
+##### final map just for biodiversiy
+```{r, warnings = FALSE, message=FALSE}
+
+all_data <- park_vis_17_3 %>% 
+  rbind(bio_bird_all) %>% 
+  rbind(bio_mammal_all)
+
+all_data$Longitude[all_data$Category == "Mammal"] <- all_data$Longitude[all_data$Category == "Mammal"]+1
+
+
+label_data <- all_data %>% filter(Category == "Mammal")
+
+bio_data <- all_data %>% filter(Category != "Park")
+
+p_park <- ggmap(us_map) +
+  scale_x_continuous( limits = c(-126.5 , -77 ), expand = c( 0 , 0 )   )+
+  scale_y_continuous( limits = c( 22.5 , 43 ), expand = c( 0 , 0 ) )+
+  geom_point(data = bio_data, aes(x = Longitude, y = Latitude, colour = n, shape = Category), size = 4)+
+  scale_colour_gradient(low = "blue", high = "red", name="number")+
+  geom_label_repel(data = label_data, aes(x = Longitude, y = Latitude), 
+                   label = label_data$Park.Name, size = 3,alpha = 1, 
+                   label.size = NA, label.padding=0.07, force = 20 )+
+  # geom_text_repel(data = label_data, aes(x = Longitude, y = Latitude, label = Park.Name), size = 3.5) +
+  theme_void() + 
+  scale_shape_manual(values=c(17,15)) +
+  ggtitle("Biodiversity for all 3 states") 
+
+p_park
+
+# ggsave("bio_map.png", dpi = "retina")
+```

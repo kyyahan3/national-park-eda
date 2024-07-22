@@ -1,0 +1,244 @@
+---
+title: "viz for correlation"
+author: "Ji Noh"
+date: "2022-12-06"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(readr)
+```
+
+
+```{r}
+#load masterdata
+df <- read_csv("https://www.dropbox.com/s/afzhasp96hvli1t/master_12_17.csv?dl=1")
+
+df
+```
+
+
+```{r}
+#Correlation for denver weather and visitation
+Denver_cor <- df %>%
+  filter(City == "Denver") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature, avg_temperature)
+
+
+#version 1 without the correlation line
+den <- ggplot(Denver_cor) +
+  geom_point(aes(x=avg_temperature, y=RecreationVisits, col = factor(ParkName))) +
+  labs(title = "Correlation Plot for National Parks in Denver Colorado",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+   theme_minimal() +
+  stat_cor(aes(x=Denver_cor$avg_temperature, y=Denver_cor$RecreationVisits, col = factor(ParkName), label = ..r.label..),method="pearson") +
+  guides(color = guide_legend(override.aes = list(size = 2) ) )
+
+#version 2 with the correlation line
+den_ver2 <-
+  ggscatter(Denver_cor,
+          x="avg_temperature", y="RecreationVisits",
+          add = "reg.line",
+          color = "ParkName",
+          size=8)+
+  stat_cor(aes(x=Denver_cor$avg_temperature, y=Denver_cor$RecreationVisits, col = ParkName, label = ..r.label..),method="pearson",size = 10) +
+  labs(title = "Correlation Plot for National Parks in Denver Colorado ",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+  guides(color = guide_legend(override.aes = list(size = 8) ) ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+```
+
+
+```{r}
+#Correlation for LA weather and visitation
+la_cor <- df %>%
+  filter(City == "Los Angeles") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature, avg_temperature)
+
+
+#version 1 without the correlation line
+la <- ggplot(la_cor) +
+  geom_point(aes(x=avg_temperature, y=RecreationVisits, col = factor(ParkName))) +
+  labs(title = "Correlation Plot for National Parks in Los Angeles California",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+  stat_cor(aes(x=la_cor$avg_temperature, y=la_cor$RecreationVisits, col = factor(ParkName), label = ..r.label..),method="pearson") +
+  theme_minimal()+
+  guides(color = guide_legend(override.aes = list(size = 2) ) )
+
+#version 2 with the correlation line
+la_ver2 <-
+  ggscatter(la_cor,
+          x="avg_temperature", y="RecreationVisits",
+          add = "reg.line",
+          color = "ParkName",
+          size=8)+
+  stat_cor(aes(x=la_cor$avg_temperature, y=la_cor$RecreationVisits, col = ParkName, label = ..r.label..),method="pearson",size = 10) +
+  labs(title = "Correlation Plot for National Parks in Los Angeles California",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+   guides(color = guide_legend(override.aes = list(size = 8) ) ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+```
+
+
+
+```{r}
+
+#Correlation for SF weather and visitation
+sf_cor <- df %>%
+  filter(City == "San Francisco") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature, avg_temperature)
+
+
+#version 1 without the correlation line
+sf <-ggplot(sf_cor) +
+  geom_point(aes(x=avg_temperature, y=RecreationVisits, col = factor(ParkName))) +
+  labs(title = "Correlation Plot for National Parks in San Francisco California",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+  stat_cor(aes(x=sf_cor$avg_temperature, y=sf_cor$RecreationVisits, col = factor(ParkName), label = ..r.label..),method="pearson",size = 8) +
+  guides(color = guide_legend(override.aes = list(size = 2) ) ) +
+  theme_minimal()
+
+#version 2 with the correlation line
+
+options(scipen = 999)
+library(scales)
+
+
+sf_ver2 <-
+  ggscatter(sf_cor,
+          x="avg_temperature", y="RecreationVisits",
+          add = "reg.line",
+          color = "ParkName",
+          size=8)+
+  stat_cor(aes(x=sf_cor$avg_temperature, y=sf_cor$RecreationVisits, col = ParkName, label = ..r.label..),method="pearson",
+           size =10) +
+  labs(title = "Correlation Plot for National Parks in San Francisco California",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+    guides(color = guide_legend(override.aes = list(size = 8) ) ) +
+  scale_x_continuous(labels = scales::comma)+
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+
+```
+
+
+
+```{r}
+
+#Correlation for Miami weather and visitation
+miami_cor <- df %>%
+  filter(City == "Miami") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature, avg_temperature)
+
+
+#version 1 without the correlation line
+mia <- ggplot(miami_cor) +
+  geom_point(aes(x=avg_temperature, y=RecreationVisits, col = factor(ParkName))) +
+  labs(title = "Correlation Plot for National Parks in Miami Florida",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+  stat_cor(aes(x=miami_cor$avg_temperature, y=miami_cor$RecreationVisits, col = factor(ParkName), label = ..r.label..),method="pearson") +
+  guides(color = guide_legend(override.aes = list(size = 2) ) )+
+  theme_minimal()
+
+#version 2 with the correlation line
+mia_ver2 <-
+  ggscatter(miami_cor,
+          x="avg_temperature", y="RecreationVisits",
+          add = "reg.line",
+          color = "ParkName",
+          size=8)+
+  stat_cor(aes(x=miami_cor$avg_temperature, y=miami_cor$RecreationVisits, col = ParkName, label = ..r.label..),method="pearson",size = 10) +
+  labs(title = "Correlation Plot for National Parks in Miami Florida",
+       x = "Average Temperature per Month",
+       y = "Number of Visitation",
+       color = "Park Name") +
+    guides(color = guide_legend(override.aes = list(size = 8) ) ) +
+  scale_y_continuous(breaks = seq(0,200000,50000),  limits=c(0, 200000))+
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+```
+
+
+saving plots to png format
+```{r}
+# library(gridExtra)
+# grid.arrange(mia,den,la,sf)
+# grid.arrange(mia_ver2,den_ver2,la_ver2,sf_ver2)
+# 
+# 
+ ggsave(filename = "miami_correlation_for_temp_and_visit.png",
+        plot = mia_ver2,
+        width = 20,
+       height = 15)
+ggsave(filename = "denver_correlation_for_temp_and_visit.png",
+      plot = den_ver2,
+      width = 20,
+       height = 15)
+ggsave(filename = "la_correlation_for_temp_and_visit.png",
+plot = la_ver2,
+width = 20,
+       height = 15)
+
+ggsave(filename = "sf_correlation_for_temp_and_visit.png",
+plot = sf_ver2,
+width = 20,
+       height = 15)
+
+ggsave(filename = "correlation_ver1.png",
+       plot = grid.arrange(mia,den,la,sf),
+       width = 15,
+       height = 15)
+
+ggsave(filename = "correlation_combined.png",
+       plot = grid.arrange(den_ver2,mia_ver2,la_ver2,sf_ver2),
+       width = 35,
+       height = 25)
+
+
+
+```
+
+
+

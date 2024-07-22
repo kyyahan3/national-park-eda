@@ -1,0 +1,94 @@
+<<<<<<< HEAD
+---
+title: "2017visits_join"
+output: html_document
+date: "2022-12-02"
+---
+```{r}
+# Libraries
+library(dplyr)
+library(naniar)
+```
+
+```{r}
+# join 2017 visits to the final_cleaned_dataset.csv which contains 2017 data
+
+# first read in the datasets that I want to join
+visits2017 <- read.csv("2017 Visits for Desired Parks.csv")
+cleaned_dataset <- read.csv("final_weather_biodiversity.csv")
+
+# Now joining two datasets, 
+join_finalCleaned_to_2017Vists <- full_join(visits2017,cleaned_dataset, by=c('UnitCode'='Park.Code'))
+
+# want to see the first few rows of new joined dataset.
+head(join_finalCleaned_to_2017Vists)
+```
+
+```{r}
+# check new data sets missingness
+gg_miss_var(join_finalCleaned_to_2017Vists)
+```
+```{r}
+# write the df to a csv file to use for analysis. This is 1 of 2 master datasets we will have. This is the 2017 master data file and the other will be the master file for 2012 to 2017. Both will be used for analysis
+write.csv(join_finalCleaned_to_2017Vists, file = "2017Master1.csv", row.names = FALSE)
+
+```
+
+=======
+---
+title: "2017visits_join"
+output: html_document
+date: "2022-12-02"
+---
+```{r}
+# Libraries
+library(dplyr)
+library(naniar)
+```
+
+```{r}
+# join 2017 visits to the final_cleaned_dataset.csv which contains 2017 data
+
+# first read in the datasets that I want to join
+visits2017 <- read.csv("2017 Visits for Desired Parks.csv")
+cleaned_dataset <- read.csv("final_cleaned_dataset.csv")
+
+# Now joining two datasets, 
+join_finalCleaned_to_2017Vists <- full_join(visits2017,cleaned_dataset, by=c('UnitCode'='Park.Code'))
+
+# want to see the first few rows of new joined dataset.
+head(join_finalCleaned_to_2017Vists)
+```
+
+```{r}
+# check new data sets missingness
+gg_miss_var(join_finalCleaned_to_2017Vists)
+```
+```{r}
+# filter out unnecessary rows and columns because the file is to large to push to git
+
+# dropped two cities not being used for analysis
+join_finalCleaned_to_2017Vists_2 <- join_finalCleaned_to_2017Vists %>%
+  filter(city != "San Diego" & city != "Jacksonville")
+
+
+# remove one of the state columns
+join_finalCleaned_to_2017Vists_2$State.x <- NULL
+```
+
+```{r}
+# write the df to a csv file to use for analysis. This is 1 of 2 master datasets we will have. This is the 2017 master data file and the other will be the master file for 2012 to 2017. Both will be used for analysis
+write.csv(join_finalCleaned_to_2017Vists_2, file = "2017Master1.csv", row.names = FALSE)
+
+```
+
+
+```{r}
+# uploaded csv file to dropbox because it is too big. Use drop box link to open 2017Master1.csv file
+readMaster <- read.csv("https://www.dropbox.com/s/ijeoo61aj9w8uuz/2017Master1.csv?dl=1")
+
+readMaster
+
+# cannot read from connection error so this dropbox link was sent to join_visit.rmd file and the link worked elsewhere.
+```
+

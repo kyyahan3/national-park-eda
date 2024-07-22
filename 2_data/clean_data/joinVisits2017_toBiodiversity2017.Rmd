@@ -1,0 +1,40 @@
+<<<<<<< HEAD
+---
+title: "2017visits_join"
+output: html_document
+date: "2022-12-02"
+---
+```{r}
+# Libraries
+library(dplyr)
+library(naniar)
+```
+
+```{r}
+# join visits 2017 to biodiversity
+# first read in the datasets that I want to join
+visits2017 <- read.csv("2017 Visits for Desired Parks.csv")
+
+# read in biodiversity 
+bioDiversity2017 <- read.csv("join_species_park.csv")
+
+# Now joining two datasets, 
+biodiversity_join_visits2017<- inner_join(visits2017,bioDiversity2017, by=c('UnitCode'='Park.Code'))
+
+# want to see the first few rows of new joined dataset.
+head(biodiversity_join_visits2017)
+```
+
+```{r}
+# check new data sets missingness
+gg_miss_var(biodiversity_join_visits2017)
+```
+
+
+```{r}
+# write the df to a csv file to use for analysis. This is 1 of 2 master datasets we will have. This is the 2017 master data file and the other will be the master file for 2012 to 2017. Both will be used for analysis
+write.csv(biodiversity_join_visits2017, file = "VisitsBiodiversity_join_2017Master.csv", row.names = FALSE)
+
+```
+
+

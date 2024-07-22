@@ -1,0 +1,217 @@
+---
+title: "Wrangle data/Data Analysis"
+output:
+  pdf_document: default
+  html_document: default
+date: "2022-11-03"
+---
+```{r}
+# libraries
+library(tidyverse)
+library(assertr)
+library(naniar)
+library(ggplot2)
+```
+
+
+```{r}
+# Reading in the csv visitation data file
+#path = ""
+visits <- read.csv("..//..//2_data//raw_data//National Parks Visitation Data.csv")
+
+# Get an idea of the data set
+head(visits)
+dim(visits)
+summary(visits)
+names(visits)
+```
+
+```{r}
+# Selecting the parks we want using park code
+
+#Looking into these national parks CALIFORNIA: Redwoods (REDW), Yosemite (YOSE), Pinnacles (PINN), Lassen Volcanic (LAVO), Channel Island (CHIS), Sequoia and Kings Canyon (SEKI), Death Valley (DEVA), Joshua Tree (JOTR)
+#COLORADO: Black Canyon of the Gunnison (BLCA), Great Sand Dunes (GRSA), Mesa Verde (MEVE), Rocky Mountain (ROMO)
+#FLORIDA: Biscayne (BISC), Dry Tortugas (DRTO), Everglades (EVER)
+
+# filtering out to the national parks I want to use for this project. 
+desired_parks_visits <- visits %>%
+  filter(UnitCode == "REDW"| UnitCode== "YOSE" | UnitCode == "PINN" | UnitCode == "LAVO" | UnitCode =="CHIS"| UnitCode=="SEKI"| UnitCode=="DEVA"| UnitCode== "JOTR"| UnitCode=="BLCA"| UnitCode=="GRSA"| UnitCode== "MEVE"| UnitCode== "ROMO"| UnitCode == "BISC"| UnitCode== "DRTO"| UnitCode== "EVER")
+
+# verify all state parks are in there
+desired_parks_visits %>%
+  verify(UnitCode == "REDW"| UnitCode== "YOSE" | UnitCode == "PINN" | UnitCode == "LAVO" | UnitCode =="CHIS"| UnitCode=="SEKI"| UnitCode=="DEVA"| UnitCode== "JOTR"| UnitCode=="BLCA"| UnitCode=="GRSA"| UnitCode== "MEVE"| UnitCode== "ROMO"| UnitCode == "BISC"| UnitCode== "DRTO"| UnitCode== "EVER")
+
+# We are evaluating year 2017 so filter on year
+desired_parks_visits_2017 <- desired_parks_visits %>%
+  filter(Year == "2017")
+
+# putting 2017 visits in a csv file
+write.csv(desired_parks_visits, "..\\..\\2_data\\clean_data\\Visits for Desired Parks.csv", row.names = FALSE)
+write.csv(desired_parks_visits_2017, "..\\..\\2_data\\clean_data\\2017 Visits for Desired Parks.csv", row.names = FALSE)
+```
+
+
+```{r}
+# Before doing data visualization want to see if there is any missingness of data that needs to be dealt with.
+
+# check for missing data in 2017
+gg_miss_var(desired_parks_visits)
+
+# check for missing data for the whole data set
+gg_miss_var(visits)
+
+# Conclude that there is no missing data.
+```
+
+```{r}
+# group by States
+FL_visits_2017 <- desired_parks_visits_2017 %>%
+  filter(State == "FL")
+
+CO_visits_2017 <- desired_parks_visits_2017 %>%
+  filter(State== "CO")
+
+CA_visits_2017 <- desired_parks_visits_2017 %>%
+  filter(State == "CA")
+
+write.csv(FL_visits_2017, "..\\..\\1_preprocessing\\CSV_files\\2017 FL Park Visits.csv", row.names = FALSE)
+write.csv(CO_visits_2017, "..\\..\\1_preprocessing\\CSV_files\\2017 CO Park Visits.csv", row.names = FALSE)
+write.csv(CA_visits_2017, "..\\..\\1_preprocessing\\CSV_files\\2017 CA Park Visits.csv", row.names = FALSE)
+
+```
+
+```{r}
+# need to change recreational visits to numeric
+FL_visits_2017$RecreationVisits <- as.numeric(gsub(",","", FL_visits_2017$RecreationVisits))
+
+# Now do data visualizations
+FL_2017_chart <- ggplot(data= FL_visits_2017, aes(x=reorder(ParkName, desc(RecreationVisits)), y = RecreationVisits))+
+  geom_bar(stat = "identity",fill = "sky blue")+
+  theme_minimal() +
+  labs(title = "Florida Recreational Visits in 2017", x = "Park Name", y = "Visit Count")+
+  theme(axis.text.x = element_text(angle = 90))
+
+FL_2017_chart
+
+ggsave("FL_2017_Recvisits_chart.png", path = "../PNG_files")
+```
+
+
+```{r}
+# need to change recreational visits to numeric
+CO_visits_2017$RecreationVisits <- as.numeric(gsub(",","", CO_visits_2017$RecreationVisits))
+
+CO_2017_chart <- ggplot(data = CO_visits_2017, aes(x = reorder(ParkName, desc(RecreationVisits)), y =RecreationVisits))+
+  geom_bar(stat = "identity", fill = "sky blue") +
+  theme_minimal() +
+  labs(title = "Colordo Recreational Visits in 2017", x = "Park Name", y = "Visit Count") +
+  theme(axis.text.x = element_text(angle = 90))
+
+CO_2017_chart
+
+ggsave("CO_2017_Recvisits_chart.png", path = "../PNG_files")
+
+```
+
+
+```{r}
+CA_visits_2017$RecreationVisits <- as.numeric(gsub(",","", CA_visits_2017$RecreationVisits))
+
+
+CA_2017_chart <- ggplot(data = CA_visits_2017, aes(x = reorder(ParkName, desc(RecreationVisits)), y =RecreationVisits))+
+  geom_bar(stat = "identity", fill = "sky blue") +
+  theme_minimal() +
+  labs(title = "California Recreational Visits in 2017", x = "Park Name", y = "Visit Count") +
+  theme(axis.text.x = element_text(angle = 90))
+CA_2017_chart
+
+ggsave("CA_2017_Recvisits_chart.png", path = "../PNG_files")
+
+```
+
+```{r}
+desired_parks_visits_2017$RecreationVisits <- as.numeric(gsub(",","", desired_parks_visits_2017$RecreationVisits))
+
+state_vists <- desired_parks_visits_2017 %>%
+  group_by(State)%>%
+  summarise(`Total Recreational Visits` = sum(RecreationVisits))
+
+state_vists
+
+write.csv(state_vists, "..\\..\\1_preprocessing\\CSV_files\\Total State Rec Visits by State.csv", row.names = FALSE)
+```
+
+
+
+
+```{r}
+park_visits <- desired_parks_visits_2017 %>%
+  group_by(ParkName)%>%
+  summarise(TotalRecVisit= sum(RecreationVisits))
+
+park_visits
+
+write.csv(park_visits, "..\\..\\1_preprocessing\\CSV_files\\Total State Rec Visits by Park.csv", row.names = FALSE)
+
+```
+
+```{r}
+state_graph <- ggplot(data = state_vists, aes(x = State,y = `Total Recreational Visits`))+
+  geom_bar(stat = "identity", fill = "sky blue") +
+  theme_minimal() +
+  labs(title = "State Park Recreational Visits in 2017", x = "State", y = "Visit Count") +
+  theme(axis.text.x = element_text(angle = 90))
+
+state_graph
+
+
+
+ggsave("Total State Rec Visits by State 2017.png", path = "../PNG_files")
+
+
+
+```
+
+```{r}
+park_graph <- ggplot(data = park_visits, aes(x = reorder(ParkName, -TotalRecVisit),y = TotalRecVisit))+
+  geom_bar(stat = "identity", fill = "sky blue") +
+  theme_minimal() +
+  labs(title = "State Park Recreational Visits in 2017", x = "Park Name", y = "Visit Count") +
+  theme(axis.text.x = element_text(angle = 90))
+
+park_graph
+
+ggsave("Total State Rec Visits by Park 2017.png", path = "../PNG_files")
+
+```
+
+```{r}
+# visits by month for all parks
+park_visits_by_month <- desired_parks_visits_2017%>%
+  group_by(Month) %>%
+  summarise(TotalRecVisits= sum(RecreationVisits))
+
+park_visits_by_month
+
+# rename month variables to names
+park_visits_by_month$Month_Name <- factor(park_visits_by_month$Month, levels = c(1,2,3,4,5,6,7,8,9,10,11,12), labels = c("January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+
+park_visits_by_month
+
+write.csv(park_visits_by_month, "..\\..\\1_preprocessing\\CSV_files\\Total State Rec Visits by Month 2017.csv", row.names = FALSE)
+```
+
+
+```{r}
+park_visits_by_month_graph <- ggplot(data = park_visits_by_month, aes(x = Month_Name,y = TotalRecVisits))+
+  geom_bar(stat = "identity", fill = "sky blue") +
+  theme_minimal() +
+  labs(title = "Sum of State Park Recreational Visits in 2017 by Month ", x = "Month", y = "Visit Count") +
+  theme(axis.text.x = element_text(angle = 90))
+
+park_visits_by_month_graph
+
+ggsave("Total State Rec Visits by Month 2017.png", path = "../PNG_files")
+
+
+```

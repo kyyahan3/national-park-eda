@@ -1,0 +1,310 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+Hunter Dawley
+
+# REQUIRED PACKAGES/LOAD META DATA
+```{r}
+library(sf) # classes and functions for vector data
+library(raster) # classes and functions for raster data
+library(spData) # load geographic data
+library(stars)
+library(gapminder)
+library(mapdata)
+library(devtools)
+library(tidyverse) 
+library(ggmap)
+library(dplyr)
+
+
+parks <- read_csv("../../2_data/raw_data/parks.csv")
+View(parks)
+
+species <- read_csv("../../2_data/raw_data/species.csv")
+view(species)
+
+#Looking into these national parks CALIFORNIA: Redwoods (REDW), Yosemite (YOSE), Pinnacles (PINN), Lassen Volcanic (LAVO), Channel Island (CHIS), Death Valley (DEVA), Joshua Tree (JOTR)
+
+#COLORADO: Black Canyon of the Gunnison (BLCA), Great Sand Dunes (GRSA), Mesa Verde (MEVE), Rocky Mountain (ROMO)
+
+#FLORIDA: Biscayne (BISC), Dry Tortugas (DRTO), Everglades (EVER)
+```
+
+
+#select observations for only the national parks we are looking into for the parks and species dataset
+```{r}
+#CALIFORNIA: Redwoods (REDW), Yosemite (YOSE), Pinnacles (PINN), Lassen Volcanic (LAVO), Channel Island (CHIS), Death Valley (DEVA), Joshua Tree (JOTR)
+
+#COLORADO: Black Canyon of the Gunnison (BLCA), Great Sand Dunes (GRSA), Mesa Verde (MEVE), Rocky Mountain (ROMO)
+
+#FLORIDA: Biscayne (BISC), Dry Tortugas (DRTO), Everglades (EVER)
+
+parks_new <- parks %>%
+  filter(`Park Name` =="Pinnacles National Park"|`Park Name` == "Redwood National Park" | `Park Name` == "Yosemite National Park" | `Park Name` == "Lassen Volcanic National Park" | `Park Name` == "Channel Islands National Park" | `Park Name` =="Death Valley National Park" | `Park Name` =="Joshua Tree National Park"| `Park Name` =="Black Canyon of the Gunnison National Park"| `Park Name` =="Great Sand Dunes National Park and Preserve"| `Park Name` == "Mesa Verde National Park"|`Park Name` == "Rocky Mountain National Park"|`Park Name` == "Biscayne National Park"|`Park Name` =="Dry Tortugas National Park"| `Park Name` == "Everglades National Park")
+
+species_new <- species %>%
+  filter(`Park Name` =="Pinnacles National Park"|`Park Name` == "Redwood National Park" | `Park Name` == "Yosemite National Park" | `Park Name` == "Lassen Volcanic National Park" | `Park Name` == "Channel Islands National Park"| `Park Name` =="Death Valley National Park" | `Park Name` =="Joshua Tree National Park"| `Park Name` =="Black Canyon of the Gunnison National Park"| `Park Name` =="Great Sand Dunes National Park and Preserve"| `Park Name` == "Mesa Verde National Park"|`Park Name` == "Rocky Mountain National Park"|`Park Name` == "Biscayne National Park"|`Park Name` =="Dry Tortugas National Park"| `Park Name` == "Everglades National Park")
+```
+
+#look only at mammals and birds for the species dataset
+```{r}
+species_2 <- species_new %>%
+  filter(`Category` == "Mammal" | `Category` == "Bird")
+
+str(species_2)
+str(parks_new)
+
+species_2 %>%
+  group_by(Category) %>%
+  summarise(n=n()) 
+
+#get counts of birds and mammals per park
+species_final <- species_2 %>%
+  group_by(Category, `Park Name`) %>%
+  summarise(n = n()) %>%
+  rename(park = `Park Name`)
+
+species_final
+```
+
+#rename columns to be able to join
+```{r}
+species_final$park <- recode(species_final$park, 
+                             `Biscayne National Park` = "Biscayne",
+                             `Black Canyon of the Gunnison National Park` = "Black Canyon",
+                             `Channel Islands National Park` = "Channel Islands",
+                             `Death Valley National Park` = "Death Valley",
+                             `Dry Tortugas National Park` = "Dry Tortugas",
+                             `Everglades National Park` = "Everglades",
+                             `Great Sand Dunes National Park and Preserve` = "Great Sand Dunes",
+                             `Joshua Tree National Park` = "Joshua Tree",
+                             `Lassen Volcanic National Park` = "Lassen Volcanic",
+                             `Mesa Verde National Park` = "Mesa Verde",
+                             `Pinnacles National Park` = "Pinnacles",
+                             `Redwood National Park` = "Redwoods",
+                             `Rocky Mountain National Park` = "Rocky Mountain",
+                             `Yosemite National Park`= "Yosemite"
+                              )
+
+
+parks_new$`Park Name` <- recode(parks_new$`Park Name`, 
+                             `Biscayne National Park` = "Biscayne",
+                             `Black Canyon of the Gunnison National Park` = "Black Canyon",
+                             `Channel Islands National Park` = "Channel Islands",
+                             `Death Valley National Park` = "Death Valley",
+                             `Dry Tortugas National Park` = "Dry Tortugas",
+                             `Everglades National Park` = "Everglades",
+                             `Great Sand Dunes National Park and Preserve` = "Great Sand Dunes",
+                             `Joshua Tree National Park` = "Joshua Tree",
+                             `Lassen Volcanic National Park` = "Lassen Volcanic",
+                             `Mesa Verde National Park` = "Mesa Verde",
+                             `Pinnacles National Park` = "Pinnacles",
+                             `Redwood National Park` = "Redwoods",
+                             `Rocky Mountain National Park` = "Rocky Mountain",
+                             `Yosemite National Park`= "Yosemite"
+                              )
+```                            
+
+#visualizations of biodiviersity in the parks
+```{r}
+#CALIFORNIA BIRDS AND MAMMALS AND GRAPHS
+CA_Biodiversity <- species_final %>%
+  filter(`park` == "Yosemite" | `park` == "Redwoods" | `park` == "Joshua Tree" | `park` == "Pinnacles" | `park` == "Lassen Volcanic" | `park` == "Channel Islands" | `park` == "Death Valley")
+CA_biodiversity_visual <- ggplot(CA_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600)) + 
+  theme_minimal()
+  ggtitle("California Bird/Mammal Biodiversity") 
+
+CA_biodiversity_visual
+ggsave("CA_biodiversity_visual.png", path = "../clean_data")
+
+#FLORIA PARKS
+FL_Biodiversity <- species_final %>%
+  filter(`park` == "Dry Tortugas" | `park` =="Everglades" | `park` == "Biscayne")
+FL_biodiversity_visual <- ggplot(FL_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600))+
+  ggtitle("Florida Bird/Mammal Biodiversity") + 
+  theme_minimal()
+ggsave("FL_biodiversity_visual.png", path = "../clean_data")
+
+#COLORADO PARKS
+CO_Biodiversity <- species_final %>%
+  filter(`park` == "Black Canyon" | `park` == "Great Sand Dunes"| `park` == "Mesa Verde" | `park` == "Rocky Mountain") 
+CO_biodiversity_visual <- ggplot(CO_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600))+
+  ggtitle("Colorado Bird/Mammal Biodiversity") +
+  theme_minimal()
+ggsave("CO_biodiversity_visual.png", path = "../clean_data")
+
+#ALL NATIONAL PARK GRAPHS TOGETHER
+all_park_biodiversity <- ggplot(species_final, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600)) +
+  ggtitle("All Park Bird/Mammal Biodiversity") 
+ggsave("all_park_biodiversity.png", path = "../clean_data")
+```
+#find the average of birds and mammals in each park for each state
+```{r}
+CA_Biodiversity_total <- CA_Biodiversity %>%
+  group_by(Category) %>%
+  summarise(total_biodiversity = sum(n)) %>%
+  mutate(avg_biodiversity = round(total_biodiversity/7, 2))
+#on average, CA parks have 103.57 mammals and 339.29 birds per national park
+
+CO_Biodiversity_total <- CO_Biodiversity %>%
+  group_by(Category) %>% 
+  summarise(total_biodiversity = sum(n)) %>%
+  mutate(avg_biodiversity = round(total_biodiversity/4, 2))
+#on average, CO parks have 73.75 mammals and 232.25 birds per national park
+
+FL_Biodiversity_total <- FL_Biodiversity %>%
+  group_by(Category) %>%
+  summarise(total_biodiversity = sum(n)) %>% 
+  mutate(avg_biodiversity = round(total_biodiversity/3, 2))
+#on average, fl parks have 25.33 mammals and 295.33 birds per national park
+
+```
+
+
+# join the parks_new set with the species_final
+```{r}
+join_species_park <- full_join(parks_new, species_final, by = c('Park Name' ='park'))
+view(join_species_park)
+```
+
+# join join_species_park with the weather data (called weather biodiversity)
+```{r}
+#we only have one city weather data for Colorado (Denver) and all of the FL national parks are closest to Miami so we will use the same data.
+
+#Redwoods, Yosemite and Pinnacles, Lassen Volcanic are San Fran. Channel Islands and Joshua Tree are closest to Los Angeles 
+
+join_species_park$city <- c("Miami", "Miami" , "Denver", "Denver", "Los Angeles", "Los Angeles", "Los Angeles", "Los Angeles", "Miami", "Miami" , "Miami", "Miami", "Denver", "Denver", "Los Angeles", "Los Angeles", "San Francisco", "San Francisco", "Denver", "Denver", "San Francisco", "San Francisco", "San Francisco", "San Francisco", "Denver", "Denver", "San Francisco", "San Francisco" )
+
+join_weather_2017 <- read_csv("join_weather_2017.csv", show_col_types = FALSE)
+
+weather_biodiversity <- full_join(join_weather_2017, join_species_park, by=c("State_ini"="State"))
+```
+
+
+#need to find average temperature for each park for each month
+```{r}
+park_temps <- weather_biodiversity %>%
+  drop_na() %>%
+  group_by(`Park Name`, `month`) %>%
+  summarise(Monthly_temp = mean(temperature, na.rm = TRUE))
+
+#NA values for Death Valley temps-drop na
+#need to make a column of closest city to each national park. We only have select city weather data.
+```
+
+
+#visualization of weather in all the parks
+```{r}
+ggplot(park_temps, aes(x = month, y = Monthly_temp, fill = `Park Name`)) + 
+  geom_bar(stat = "identity", width = 1) +
+  facet_wrap(~`Park Name`) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 100)) 
+
+#FLORIA PARKS
+FL_Biodiversity_weather <- park_temps %>%
+filter(`Park Name` == "Dry Tortugas" | `Park Name` =="Everglades" | `Park Name` == "Biscayne")
+
+ggplot(FL_Biodiversity_weather, aes(x = month, y = Monthly_temp, fill = `Park Name`)) + 
+  geom_bar(stat = "identity", width = 1) +
+  facet_wrap(~`Park Name`) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 100)) 
+
+#COLORADO PARKS
+CO_Biodiversity_weather <- park_temps %>%
+filter(`Park Name` == "Black Canyon" | `Park Name` =="Great Sand Dunes" | `Park Name` == "Mesa Verde" | `Park Name` == "Rocky Mountain")
+
+ggplot(CO_Biodiversity_weather, aes(x = month, y = Monthly_temp, fill = `Park Name`)) + 
+  geom_bar(stat = "identity", width = 1) +
+  facet_wrap(~`Park Name`) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 100))  
+
+#CALIFORNIA PARKS
+CA_Biodiversity_weather <- park_temps %>%
+  filter(`Park Name` == "Yosemite" | `Park Name` == "Redwoods" | `Park Name` == "Joshua Tree" | `Park Name` == "Pinnacles" | `Park Name` == "Lassen Volcanic" | `Park Name` == "Channel Islands"| `Park Name` == "Death Valley")
+
+ggplot(CA_Biodiversity_weather, aes(x = month, y = Monthly_temp, fill = `Park Name`)) + 
+  geom_bar(stat = "identity", width = 1) +
+  facet_wrap(~`Park Name`) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 100)) 
+
+#only monthly temps until october for San Fran and Miami.
+```
+
+
+```{r}
+
+
+write.csv(weather_biodiversity, file = "final_weather_biodiversity", row.names = FALSE)
+#use this!!
+
+#write.csv(join_species_park, file = "join_species_park.csv", row.names = FALSE)
+#write.csv(park_temps, file = "park_temps.csv", row.names = FALSE)
+```
+
+
+#USE A MAP TO VISUALIZE BIODIVIERSITY
+```{r}
+bird_biodiversity <- weather_biodiversity %>% 
+  filter(Category == "Bird") 
+
+bird_biodiversity_plot <- bird_biodiversity %>%
+  ggplot(aes(x = Longitude, y = Latitude)) +
+    borders("state") +
+    xlim(-125, -65)+ ylim(25,50)+
+    scale_colour_gradient(low = "sky blue", high = "black")+
+    geom_point(aes(color = n), size = 3) +
+    coord_quickmap()+
+    labs(title = "2017 Bird Biodiversity Among Parks", 
+         colour="Birds", x ="Longitude")+
+  theme_minimal()
+
+bird_biodiversity_plot
+ggsave("bird_biodiversity.png", path = "../clean_data")
+```
+
+```{r}
+mammal_biodiversity <- weather_biodiversity %>% 
+  filter(Category == "Mammal") 
+
+mammal_biodiversity_plot <- mammal_biodiversity %>%
+  ggplot(aes(x = Longitude, y = Latitude)) +
+    borders("state") +
+    xlim(-125, -65)+ ylim(25,50)+
+    scale_colour_gradient(low = "sky blue", high = "black")+
+    geom_point(aes(color = n), size = 3) +
+    coord_quickmap()+
+    labs(title = "2017 Mammal Biodiversity Among Parks", 
+         colour="Mammals", x ="Longitude")+
+  theme_minimal()
+mammal_biodiversity_plot
+ggsave("mammal_biodiversity.png", path = "../clean_data")
+```
+
+
+

@@ -1,0 +1,517 @@
+---
+title: "viz for preprocessing"
+author: "Ji Noh"
+date: "2022-12-08"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+## Loading the data from master data
+```{r}
+library(readr)
+df <- read_csv("https://www.dropbox.com/s/afzhasp96hvli1t/master_12_17.csv?dl=1")
+
+df
+```
+
+## 1. Temperature data
+
+### Simple findings
+```{r}
+temperature_avg <- df %>%
+  select(City,Year,Month,day,time,temperature, avg_temperature, ParkName) %>%
+  group_by(Month, City) %>%
+  summarise(avg_temp_year = mean(avg_temperature, na.rm = TRUE))
+
+
+
+```
+
+
+```{r}
+oc.color <- c("#2196F3", "#9FA8DA", "#4DD0E1","#81C784")
+
+temp_plot <-ggplot(temperature_avg, aes(x=Month, y= avg_temp_year, color = City)) +
+  geom_line()+
+  labs(title = "2012-2017 Average Temperature by Month For Cities",
+       x = "Month",
+       y = "Average Humidity") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  scale_fill_manual(values = oc.color[1:4]) +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) +
+  theme_minimal() 
+
+ggsave(filename = "temp_general.png",
+       plot = temp_plot,
+       width = 10,
+       height = 7)
+```
+
+
+### Specific findings
+
+
+First, we would like to see all the temperature in our desired cities from 2012-2017.
+I will then group them with month to see the temperature patterns in each cities by month.
+
+
+```{r}
+#selecting the temperature variable
+temperature <- df %>%
+  select(City,Year,Month,day,time,temperature, ParkName)
+```
+
+```{r}
+#denver
+temp_data_denver <- temperature %>%
+  filter(City == "Denver") %>%
+  select(City:temperature)
+
+#temp_data_denver
+
+temp_denver_plot <- ggplot(temp_data_denver, aes(x=Month, y = temperature, group=Month)) +
+  geom_boxplot(fill="lightblue2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Denver Temperature by Month",
+    x = "Month",
+    y = "Temperature",
+    fill = "Temperature"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#temp_denver_plot
+```
+
+```{r}
+#Miami
+temp_data_miami <- temperature %>%
+  filter(City == "Miami") %>%
+  select(City:temperature)
+
+#temp_data_miami
+
+temp_miami_plot <- ggplot(temp_data_miami, aes(x=Month, y = temperature, group=Month)) +
+  geom_boxplot(fill="lightcyan2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Miami Temperature by Month",
+    x = "Month",
+    y = "Temperature",
+    fill = "Temperature"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#temp_miami_plot
+```
+
+```{r}
+#Los Angeles
+temp_data_la<- temperature %>%
+  filter(City == "Los Angeles") %>%
+  select(City:temperature)
+
+#temp_data_la
+
+temp_la_plot <- ggplot(temp_data_la, aes(x=Month, y = temperature, group=Month)) +
+  geom_boxplot(fill="lightsteelblue") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Los Angeles Temperature by Month",
+    x = "Month",
+    y = "Temperature",
+    fill = "Temperature"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#temp_la_plot
+```
+
+```{r}
+#San Francisco
+temp_data_sf<- temperature %>%
+  filter(City == "San Francisco") %>%
+  select(City:temperature)
+
+#temp_data_sf
+
+temp_sf_plot <- ggplot(temp_data_sf, aes(x=Month, y = temperature, group=Month)) +
+  geom_boxplot(fill="paleturquoise3") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 San Francisco Temperature by Month",
+    x = "Month",
+    y = "Temperature",
+    fill = "Temperature"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#temp_sf_plot
+```
+
+
+```{r}
+#then, I will arrange above four plots
+library(gridExtra)
+grid.arrange(temp_denver_plot,temp_miami_plot,temp_la_plot,temp_sf_plot)
+
+#ggsave(filename = "Temperature_compare_by_city_3.png",
+      # grid.arrange(temp_denver_plot,temp_miami_plot,temp_la_plot,temp_sf_plot),
+      # width = 30,
+       #height = 20)
+```
+
+
+
+
+
+
+## 2. Humidity data
+
+### Simple findings
+```{r}
+hum_avg <- df %>%
+  select(City,Year,Month,day,time,humidity, avg_humidity, ParkName) %>%
+  group_by(Month, City) %>%
+  summarise(avg_hum_year = mean(avg_humidity, na.rm=TRUE))
+
+```
+
+
+```{r}
+oc.color <- c("#2196F3", "#9FA8DA", "#4DD0E1","#81C784")
+
+hum_plot <-ggplot(hum_avg, aes(x=Month, y= avg_hum_year, color = City)) +
+  geom_line()+
+  labs(title = "2012-2017 Average Humidity by Month For Cities",
+       x = "Month",
+       y = "Average Humidity") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  scale_fill_manual(values = oc.color[1:4]) +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) +
+  theme_minimal() 
+
+ggsave(filename = "hum_general.png",
+       plot = hum_plot,
+       width = 10,
+       height = 7)
+```
+
+
+### Specific findings
+
+Here, we will do the same process as above for the humidity observations.
+
+```{r}
+hum <- df %>%
+  select(City,Year,Month,day,time,humidity, ParkName) 
+
+hum
+```
+
+
+```{r}
+#denver
+hum_data_denver <- hum %>%
+  filter(City == "Denver") %>%
+  select(City:humidity)
+
+#hum_data_denver
+
+hum_denver_plot <- ggplot(hum_data_denver, aes(x=Month, y = humidity, group=Month)) +
+  geom_boxplot(fill="lightblue2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Denver Humidity by Month",
+    x = "Month",
+    y = "Humidity",
+    fill = "Humidity"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+#hum_denver_plot
+
+```
+
+```{r}
+#Miami
+hum_data_miami <-  hum %>%
+  filter(City == "Miami") %>%
+  select(City:humidity)
+
+#hum_data_miami
+
+hum_miami_plot <- ggplot(hum_data_miami, aes(x=Month, y = humidity, group=Month)) +
+  geom_boxplot(fill="lightcyan2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Miami Humidity by Month",
+    x = "Month",
+    y = "Humidity",
+    fill = "Humidity"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#hum_miami_plot
+```
+
+```{r}
+
+#Los Angeles
+hum_data_la<- hum %>%
+  filter(City == "Los Angeles") %>%
+  select(City:humidity)
+
+#hum_data_la
+
+hum_la_plot <- ggplot(hum_data_la, aes(x=Month, y = humidity, group=Month)) +
+  geom_boxplot(fill="lightsteelblue") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 Los Angeles Humidity by Month",
+    x = "Month",
+    y = "Humidity",
+    fill = "Humidity"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#hum_la_plot
+```
+
+
+```{r}
+#San Francisco
+hum_data_sf<- hum %>%
+  filter(City == "San Francisco") %>%
+  select(City:humidity)
+
+#hum_data_sf
+
+hum_sf_plot <- ggplot(hum_data_sf, aes(x=Month, y = humidity, group=Month)) +
+  geom_boxplot(fill="paleturquoise3") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,100,20),  limits=c(0, 100)) +
+  labs(
+    title = "2012 - 2017 San Francisco Humidity by Month",
+    x = "Month",
+    y = "Humidity",
+    fill = "Humidity"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#hum_sf_plot
+```
+
+
+```{r}
+#alligning all the plots
+library(gridExtra)
+grid.arrange(hum_denver_plot,hum_miami_plot,hum_la_plot,hum_sf_plot)
+
+#ggsave(filename = "humidity_compare_by_city1.png",
+      # plot = grid.arrange(hum_denver_plot,hum_miami_plot,hum_la_plot,hum_sf_plot),
+      # width = 30,
+      # height = 20)
+```
+
+
+## 3. Wind Speed data
+
+### Simple findings
+```{r}
+wind_avg <- df %>%
+  select(City,Year,Month,day,time,wind_speed, avg_wind_speed, ParkName) %>%
+  group_by(Month, City) %>%
+  summarise(avg_wind_year = mean(avg_wind_speed, na.rm = TRUE))
+
+```
+
+
+```{r}
+oc.color <- c("#2196F3", "#9FA8DA", "#4DD0E1","#81C784")
+
+wind_plot <- ggplot(wind_avg, aes(x=Month, y= avg_wind_year, color = City)) +
+  geom_line() +
+  labs(title = "2012-2017 Average Wind Speed by Month For Cities",
+       x = "Month",
+       y = "Average Wind Speed") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,5,1),  limits=c(0, 5)) +
+  scale_fill_manual(values = oc.color[1:4]) +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) +
+  theme_minimal() 
+
+ggsave(filename = "wind_general.png",
+       plot = wind_plot,
+       width = 10,
+       height = 7)
+```
+
+
+
+Sampe process with wind speed observations
+```{r}
+wind <- df %>%
+  select(City,Year,Month,day,time,wind_speed, ParkName) 
+
+wind
+```
+
+```{r}
+#denver
+wind_data_denver <- wind %>%
+  filter(City == "Denver") %>%
+  select(City:wind_speed)
+
+#wind_data_denver
+
+wind_denver_plot <- ggplot(wind_data_denver, aes(x=Month, y = wind_speed, group=Month)) +
+  geom_boxplot(fill="lightblue2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,30,5),  limits=c(0, 30)) +
+  labs(
+    title = "2012 - 2017 Denver Wind Speed by Month",
+    x = "Month",
+    y = "Wind Speed",
+    fill = "Wind Speed"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+#wind_denver_plot
+
+```
+
+```{r}
+#Miami
+wind_data_miami <-  wind %>%
+  filter(City == "Miami") %>%
+  select(City:wind_speed)
+
+#wind_data_miami
+
+wind_miami_plot <- ggplot(wind_data_miami, aes(x=Month, y = wind_speed, group=Month)) +
+  geom_boxplot(fill="lightcyan2") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,30,5),  limits=c(0, 30)) +
+  labs(
+    title = "2012 - 2017 Miami Wind Speed by Month",
+    x = "Month",
+    y = "Wind Speed",
+    fill = "Wind Speed"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#wind_miami_plot
+
+```
+
+
+```{r}
+#Los Angeles
+wind_data_la<- wind %>%
+  filter(City == "Los Angeles") %>%
+  select(City:wind_speed)
+
+#wind_data_la
+
+wind_la_plot <- ggplot(wind_data_la, aes(x=Month, y = wind_speed, group=Month)) +
+  geom_boxplot(fill="lightsteelblue") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,30,5),  limits=c(0, 30)) +
+  labs(
+    title = "2012 - 2017 Los Angeles Wind Speed by Month",
+    x = "Month",
+    y = "Wind Speed",
+    fill = "Wind SPeed"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#wind_la_plot
+```
+
+```{r}
+#San Francisco
+wind_data_sf<- wind %>%
+  filter(City == "San Francisco") %>%
+  select(City:wind_speed)
+
+#wind_data_sf
+
+wind_sf_plot <- ggplot(wind_data_sf, aes(x=Month, y = wind_speed, group=Month)) +
+  geom_boxplot(fill="paleturquoise3") +
+  scale_x_continuous(breaks = seq(0,12,1)) +
+  scale_y_continuous(breaks = seq(0,30,5),  limits=c(0, 30)) +
+  labs(
+    title = "2012 - 2017 San Francisco Wind Speed by Month",
+    x = "Month",
+    y = "Wind Speed",
+    fill = "Wind Speed"
+  ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30)) 
+
+#wind_sf_plot
+```
+
+```{r}
+library(gridExtra)
+grid.arrange(wind_denver_plot,wind_miami_plot,wind_la_plot,wind_sf_plot)
+
+ggsave(filename = "windspeed_compare_by_city.png",
+       grid.arrange(wind_denver_plot,wind_miami_plot,wind_la_plot,wind_sf_plot),
+       width = 30,
+       height = 20)
+```

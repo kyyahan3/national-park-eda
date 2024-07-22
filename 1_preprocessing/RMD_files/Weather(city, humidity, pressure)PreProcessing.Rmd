@@ -1,0 +1,157 @@
+---
+title: "data-cleaning-JiNoh"
+author: "Ji Noh"
+date: "2022-11-03"
+output: github_document
+---
+
+# Data Cleaning for Weather datasets
+
+
+
+```{r}
+library(dplyr)
+library(tidyverse)
+```
+
+
+## city_attributes dataset
+
+
+Here, I will first load the city attributes dataset. This data contains "City". "Country", "Latitude", and "Longitude" information.
+
+```{r}
+#load dataset
+
+library(readr)
+city_attributes <- read_csv("../../2_data/raw_data/city_attributes.csv")
+
+```
+
+
+Here, I will make a new data called *city_attributes_clean* to have observations that we only need for your analysis.
+
+I am going to filter cities of *"San Francisco", "Los Angeles", "San Diego", "Denver", "Jacksonville", and "Miami"*.
+
+
+```{r}
+#filtering cities we need
+
+city_attributes_clean <- city_attributes %>%
+  filter(City == "San Francisco" | City == "Los Angeles" | City == "San Diego" | City == "Denver" | City == "Jacksonville" | City == "Miami")
+
+city_attributes_clean
+```
+
+Now, we will save this dataset as a separate csv file called *"city_lat_and_long"*.
+```{r}
+#write.csv(city_attributes_clean, file="city_lat_and_long.csv", row.names = FALSE)
+```
+
+
+## Humidity data
+
+```{r}
+#Load data
+library(readr)
+humidity <- read_csv("../../2_data/raw_data/humidity.csv")
+
+```
+
+
+Here, unlike *city_attributes* dataset, each city is in the column. I will do pivot_longer() to go that into observation rather than being variable names.
+
+```{r}
+#pivot_longer() to make humidity and city as observations.
+head(humidity)
+humidity_clean <- humidity %>%
+  select("datetime", "San Francisco", "Los Angeles", "San Diego", "Denver", "Jacksonville", "Miami") %>%
+  pivot_longer("San Francisco":"Miami", names_to = "City", values_to = "Humidity")  %>%
+  filter(grepl('2017',datetime)) 
+
+
+humidity_clean
+```
+
+
+Looking at the *datetime* variable, it is formed as year-month-day-time. We might want to split these to make an analysis based on time or day or month. Here I will use format() function to split the *datatime* variable.
+
+```{r}
+
+#spliting date and time
+humidity_clean$time <- format(as.POSIXct(humidity_clean$datetime), format = "%H:%M:%S")
+humidity_clean$date <- as.Date(humidity_clean$datetime) 
+
+#spliting year month day
+humidity_clean <- humidity_clean %>%
+  dplyr::mutate(year = lubridate::year(date), 
+                month = lubridate::month(date), 
+                day = lubridate::day(date))
+
+humidity_clean
+
+```
+Now we have variables of *"year", "Humidity", "City", "day", "month", "time", "datetime", and "date"*.
+I am still leaving the original *"datetime"* variable just in case for later use.
+
+Next, I would like to arrange the dataset by *City"*, to make it more clear.
+
+```{r}
+humidity_clean <- humidity_clean %>%
+  arrange(City)
+```
+
+I am saving this *humidity_clean* dataset to csv file format.
+
+```{r}
+#write.csv(humidity_clean, file="humidity_by_hour_clean.csv", row.names = FALSE)
+```
+
+
+## pressure data
+
+```{r}
+#load data
+library(readr)
+pressure <- read_csv("../../2_data/raw_data/pressure.csv")
+
+```
+ 
+I will first filter out the cities we want, and save it to a new dataset called pressure_clean.
+
+```{r}
+pressure_clean <- pressure %>%
+  select("datetime", "San Francisco", "Los Angeles", "San Diego", "Denver", "Jacksonville", "Miami")
+
+pressure_clean
+```
+
+Here, similar with humidity dataset, the cities are in the variables. I will use the same method I used for the humidity to make the cities and pressure values to go into the observation, using pivot_longer() function.
+
+I will also make new variables called *"Pressure"* and *"City"* to store all the observations there.
+
+```{r}
+#pivot_longer() to make pressure and cities to go into observation.
+pressure_clean <- pressure %>%
+  select("datetime", "San Francisco", "Los Angeles", "San Diego", "Denver", "Jacksonville", "Miami") %>%
+  pivot_longer("San Francisco":"Miami", names_to = "City", values_to = "Pressure")  %>%
+  filter(grepl('2017',datetime)) 
+
+
+
+#spliting date and time
+pressure_clean$time <- format(as.POSIXct(pressure_clean$datetime), format = "%H:%M:%S")
+pressure_clean$date <- as.Date(pressure_clean$datetime) 
+
+#spliting year month day
+pressure_clean <- pressure_clean %>%
+  dplyr::mutate(year = lubridate::year(date), 
+                month = lubridate::month(date), 
+                day = lubridate::day(date))
+
+pressure_clean
+
+```
+
+After discussing with teammates, we decided not to use pressure information for our analysis. Our team is going to look at **temperature**, **humidity**, and **wind speed** to see if there is any relationships with weather, visitations, and biodiversity. Therefore, for the pressure data, I will not going to save this to separate csv file.
+

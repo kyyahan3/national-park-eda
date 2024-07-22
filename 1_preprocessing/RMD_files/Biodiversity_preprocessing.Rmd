@@ -1,0 +1,151 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+Hunter Dawley
+
+# REQUIRED PACKAGES/LOAD META DATA
+```{r}
+library(sf) # classes and functions for vector data
+library(raster) # classes and functions for raster data
+library(spData) # load geographic data
+library(stars)
+library(gapminder)
+library(mapdata)
+library(devtools)
+library(tidyverse) 
+library(ggmap)
+library(dplyr)
+
+readMaster <- read.csv("https://www.dropbox.com/s/ijeoo61aj9w8uuz/2017Master1.csv?dl=1")
+
+parks <- read_csv("../../2_data/raw_data/parks.csv")
+View(parks)
+
+species <- read_csv("../../2_data/raw_data/species.csv")
+view(species)
+
+#Looking into these national parks CALIFORNIA: Redwoods (REDW), Yosemite (YOSE), Pinnacles (PINN), Lassen Volcanic (LAVO), Channel Island (CHIS), Death Valley (DEVA), Joshua Tree (JOTR)
+
+#COLORADO: Black Canyon of the Gunnison (BLCA), Great Sand Dunes (GRSA), Mesa Verde (MEVE), Rocky Mountain (ROMO)
+
+#FLORIDA: Biscayne (BISC), Dry Tortugas (DRTO), Everglades (EVER)
+```
+
+
+#select observations for only the national parks we are looking into for the parks and species dataset
+```{r}
+#CALIFORNIA: Redwoods (REDW), Yosemite (YOSE), Pinnacles (PINN), Lassen Volcanic (LAVO), Channel Island (CHIS), Death Valley (DEVA), Joshua Tree (JOTR)
+
+#COLORADO: Black Canyon of the Gunnison (BLCA), Great Sand Dunes (GRSA), Mesa Verde (MEVE), Rocky Mountain (ROMO)
+
+#FLORIDA: Biscayne (BISC), Dry Tortugas (DRTO), Everglades (EVER)
+
+parks_new <- parks %>%
+  filter(`Park Name` =="Pinnacles National Park"|`Park Name` == "Redwood National Park" | `Park Name` == "Yosemite National Park" | `Park Name` == "Lassen Volcanic National Park" | `Park Name` == "Channel Islands National Park" | `Park Name` =="Death Valley National Park" | `Park Name` =="Joshua Tree National Park"| `Park Name` =="Black Canyon of the Gunnison National Park"| `Park Name` =="Great Sand Dunes National Park and Preserve"| `Park Name` == "Mesa Verde National Park"|`Park Name` == "Rocky Mountain National Park"|`Park Name` == "Biscayne National Park"|`Park Name` =="Dry Tortugas National Park"| `Park Name` == "Everglades National Park")
+
+species_new <- species %>%
+  filter(`Park Name` =="Pinnacles National Park"|`Park Name` == "Redwood National Park" | `Park Name` == "Yosemite National Park" | `Park Name` == "Lassen Volcanic National Park" | `Park Name` == "Channel Islands National Park"| `Park Name` =="Death Valley National Park" | `Park Name` =="Joshua Tree National Park"| `Park Name` =="Black Canyon of the Gunnison National Park"| `Park Name` =="Great Sand Dunes National Park and Preserve"| `Park Name` == "Mesa Verde National Park"|`Park Name` == "Rocky Mountain National Park"|`Park Name` == "Biscayne National Park"|`Park Name` =="Dry Tortugas National Park"| `Park Name` == "Everglades National Park")
+```
+
+#look only at mammals and birds for the species dataset
+```{r}
+species_2 <- species_new %>%
+  filter(`Category` == "Mammal" | `Category` == "Bird")
+
+str(species_2)
+str(parks_new)
+
+species_2 %>%
+  group_by(Category) %>%
+  summarise(n=n()) 
+
+#get counts of birds and mammals per park
+species_final <- species_2 %>%
+  group_by(Category, `Park Name`) %>%
+  summarise(n = n()) %>%
+  rename(park = `Park Name`)
+
+species_final
+```
+
+#rename columns to be able to join
+```{r}
+species_final$park <- recode(species_final$park, 
+                             `Biscayne National Park` = "Biscayne",
+                             `Black Canyon of the Gunnison National Park` = "Black Canyon",
+                             `Channel Islands National Park` = "Channel Islands",
+                             `Death Valley National Park` = "Death Valley",
+                             `Dry Tortugas National Park` = "Dry Tortugas",
+                             `Everglades National Park` = "Everglades",
+                             `Great Sand Dunes National Park and Preserve` = "Great Sand Dunes",
+                             `Joshua Tree National Park` = "Joshua Tree",
+                             `Lassen Volcanic National Park` = "Lassen Volcanic",
+                             `Mesa Verde National Park` = "Mesa Verde",
+                             `Pinnacles National Park` = "Pinnacles",
+                             `Redwood National Park` = "Redwoods",
+                             `Rocky Mountain National Park` = "Rocky Mountain",
+                             `Yosemite National Park`= "Yosemite"
+                              )
+
+
+parks_new$`Park Name` <- recode(parks_new$`Park Name`, 
+                             `Biscayne National Park` = "Biscayne",
+                             `Black Canyon of the Gunnison National Park` = "Black Canyon",
+                             `Channel Islands National Park` = "Channel Islands",
+                             `Death Valley National Park` = "Death Valley",
+                             `Dry Tortugas National Park` = "Dry Tortugas",
+                             `Everglades National Park` = "Everglades",
+                             `Great Sand Dunes National Park and Preserve` = "Great Sand Dunes",
+                             `Joshua Tree National Park` = "Joshua Tree",
+                             `Lassen Volcanic National Park` = "Lassen Volcanic",
+                             `Mesa Verde National Park` = "Mesa Verde",
+                             `Pinnacles National Park` = "Pinnacles",
+                             `Redwood National Park` = "Redwoods",
+                             `Rocky Mountain National Park` = "Rocky Mountain",
+                             `Yosemite National Park`= "Yosemite"
+                              )
+```                            
+
+#visualizations of biodiviersity in the parks
+```{r}
+#CALIFORNIA BIRDS AND MAMMALS AND GRAPHS
+CA_Biodiversity <- species_final %>%
+  filter(`park` == "Yosemite" | `park` == "Redwoods" | `park` == "Joshua Tree" | `park` == "Pinnacles" | `park` == "Lassen Volcanic" | `park` == "Channel Islands" | `park` == "Death Valley")
+ggplot(CA_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600)) 
+
+#FLORIA PARKS
+FL_Biodiversity <- species_final %>%
+  filter(`park` == "Dry Tortugas" | `park` =="Everglades" | `park` == "Biscayne")
+ggplot(FL_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600)) 
+
+#COLORADO PARKS
+CO_Biodiversity <- species_final %>%
+  filter(`park` == "Black Canyon" | `park` == "Great Sand Dunes"| `park` == "Mesa Verde" | `park` == "Rocky Mountain") 
+ggplot(CO_Biodiversity, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600))  
+
+#ALL NATIONAL PARK GRAPHS TOGETHER
+ggplot(species_final, aes(x = Category, y = n, fill = Category)) + 
+  geom_bar(stat = "identity", width = 1) +
+  geom_text(aes(label = n), vjust = 0) +
+  facet_wrap(~park) + 
+  scale_fill_brewer(palette = "Paired") + 
+  scale_y_continuous(name="Count", limits=c(0, 600)) 
+ 
+```

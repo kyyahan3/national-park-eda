@@ -1,0 +1,181 @@
+"State","City","Month","Avg_temp_by_month"
+"California","Fresno",1,47.9225806451613
+"California","Fresno",2,54.0607142857143
+"California","Fresno",3,58.6774193548387
+"California","Fresno",4,61.9633333333333
+"California","Fresno",5,71.3838709677419
+"California","Fresno",6,80.84
+"California","Fresno",7,86.841935483871
+"California","Fresno",8,85.2806451612903
+"California","Fresno",9,77.1533333333333
+"California","Fresno",10,65.4516129032258
+"California","Fresno",11,57.73
+"California","Fresno",12,46.958064516129
+"California","Los Angeles",1,55.7129032258064
+"California","Los Angeles",2,56.7642857142857
+"California","Los Angeles",3,59.9290322580645
+"California","Los Angeles",4,62.6566666666667
+"California","Los Angeles",5,62.3387096774194
+"California","Los Angeles",6,65.75
+"California","Los Angeles",7,70.5193548387097
+"California","Los Angeles",8,70.6387096774194
+"California","Los Angeles",9,70.6233333333333
+"California","Los Angeles",10,70.2354838709677
+"California","Los Angeles",11,64.6433333333333
+"California","Los Angeles",12,61.1129032258065
+"California","Sacramento",1,46.3483870967742
+"California","Sacramento",2,52.3214285714286
+"California","Sacramento",3,56.1
+"California","Sacramento",4,58.8533333333333
+"California","Sacramento",5,66.5612903225806
+"California","Sacramento",6,73.1433333333333
+"California","Sacramento",7,77.1935483870968
+"California","Sacramento",8,74.8096774193548
+"California","Sacramento",9,72.36
+"California","Sacramento",10,63.0548387096774
+"California","Sacramento",11,54.3633333333333
+"California","Sacramento",12,45.9129032258065
+"California","San Diego",1,57.4870967741935
+"California","San Diego",2,58.9428571428571
+"California","San Diego",3,61.9451612903226
+"California","San Diego",4,64.4466666666667
+"California","San Diego",5,64.2935483870968
+"California","San Diego",6,66.77
+"California","San Diego",7,71.8193548387097
+"California","San Diego",8,71.8193548387097
+"California","San Diego",9,71.85
+"California","San Diego",10,70.3483870967742
+"California","San Diego",11,64.2566666666667
+"California","San Diego",12,59.8935483870968
+"California","San Francisco",1,50.6516129032258
+"California","San Francisco",2,54.5928571428571
+"California","San Francisco",3,55.8129032258065
+"California","San Francisco",4,57.4566666666667
+"California","San Francisco",5,58.6193548387097
+"California","San Francisco",6,61.61
+"California","San Francisco",7,62.2612903225806
+"California","San Francisco",8,64.0258064516129
+"California","San Francisco",9,67.9433333333333
+"California","San Francisco",10,62.2645161290323
+"California","San Francisco",11,57.9966666666667
+"California","San Francisco",12,52.3935483870968
+"Colorado","Colorado Springs",1,30.4967741935484
+"Colorado","Colorado Springs",2,40.4071428571429
+"Colorado","Colorado Springs",3,47.1322580645161
+"Colorado","Colorado Springs",4,48.5966666666667
+"Colorado","Colorado Springs",5,55.4322580645161
+"Colorado","Colorado Springs",6,69.8366666666667
+"Colorado","Colorado Springs",7,72.1193548387097
+"Colorado","Colorado Springs",8,67.7838709677419
+"Colorado","Colorado Springs",9,63.3566666666667
+"Colorado","Colorado Springs",10,50.1129032258064
+"Colorado","Colorado Springs",11,45.5766666666667
+"Colorado","Colorado Springs",12,33.4709677419355
+"Colorado","Denver",1,29.458064516129
+"Colorado","Denver",2,40.2357142857143
+"Colorado","Denver",3,48.5548387096774
+"Colorado","Denver",4,48.67
+"Colorado","Denver",5,55.2387096774194
+"Colorado","Denver",6,70.1033333333333
+"Colorado","Denver",7,75.5193548387097
+"Colorado","Denver",8,70.2516129032258
+"Colorado","Denver",9,64.3933333333333
+"Colorado","Denver",10,50.0354838709677
+"Colorado","Denver",11,44.9
+"Colorado","Denver",12,33.1096774193548
+"Colorado","Grand Junction",1,30.0161290322581
+"Colorado","Grand Junction",2,41.2571428571429
+"Colorado","Grand Junction",3,50.3903225806452
+"Colorado","Grand Junction",4,52.9966666666667
+"Colorado","Grand Junction",5,61.9870967741935
+"Colorado","Grand Junction",6,78.6
+"Colorado","Grand Junction",7,80.6032258064516
+"Colorado","Grand Junction",8,76.9096774193548
+"Colorado","Grand Junction",9,67.9333333333333
+"Colorado","Grand Junction",10,50.9516129032258
+"Colorado","Grand Junction",11,44.69
+"Colorado","Grand Junction",12,30.8387096774194
+"Colorado","Pueblo",1,31.4290322580645
+"Colorado","Pueblo",2,42.5428571428571
+"Colorado","Pueblo",3,50.0935483870968
+"Colorado","Pueblo",4,52.18
+"Colorado","Pueblo",5,58.9322580645161
+"Colorado","Pueblo",6,73.0766666666667
+"Colorado","Pueblo",7,76.9548387096774
+"Colorado","Pueblo",8,71.8483870967742
+"Colorado","Pueblo",9,67.0966666666667
+"Colorado","Pueblo",10,52.4451612903226
+"Colorado","Pueblo",11,44.4966666666667
+"Colorado","Pueblo",12,31.558064516129
+"Florida","Jacksonville",1,58.3806451612903
+"Florida","Jacksonville",2,61.6321428571429
+"Florida","Jacksonville",3,61.858064516129
+"Florida","Jacksonville",4,69.8966666666667
+"Florida","Jacksonville",5,74.8387096774194
+"Florida","Jacksonville",6,77.64
+"Florida","Jacksonville",7,81.1935483870968
+"Florida","Jacksonville",8,80.4516129032258
+"Florida","Jacksonville",9,77.81
+"Florida","Jacksonville",10,73.0935483870968
+"Florida","Jacksonville",11,63.8233333333333
+"Florida","Jacksonville",12,57.2838709677419
+"Florida","Miami Beach",1,72.2967741935484
+"Florida","Miami Beach",2,72.2357142857143
+"Florida","Miami Beach",3,72.5161290322581
+"Florida","Miami Beach",4,77.2
+"Florida","Miami Beach",5,81.6387096774194
+"Florida","Miami Beach",6,82.8766666666667
+"Florida","Miami Beach",7,85.1709677419355
+"Florida","Miami Beach",8,85.1516129032258
+"Florida","Miami Beach",9,84.4533333333333
+"Florida","Miami Beach",10,80.5483870967742
+"Florida","Miami Beach",11,76.8233333333333
+"Florida","Miami Beach",12,71.5161290322581
+"Florida","Orlando",1,63.9967741935484
+"Florida","Orlando",2,67.1678571428571
+"Florida","Orlando",3,68.1677419354839
+"Florida","Orlando",4,73.8933333333333
+"Florida","Orlando",5,75.9741935483871
+"Florida","Orlando",6,77.04
+"Florida","Orlando",7,80.2870967741935
+"Florida","Orlando",8,81.0516129032258
+"Florida","Orlando",9,79.51
+"Florida","Orlando",10,74.4483870967742
+"Florida","Orlando",11,68.64
+"Florida","Orlando",12,63.6774193548387
+"Florida","Tallahassee",1,57.1612903225806
+"Florida","Tallahassee",2,61.7214285714286
+"Florida","Tallahassee",3,62.7903225806452
+"Florida","Tallahassee",4,70.1566666666667
+"Florida","Tallahassee",5,74.6032258064516
+"Florida","Tallahassee",6,78.0333333333333
+"Florida","Tallahassee",7,80.8354838709677
+"Florida","Tallahassee",8,81.1193548387097
+"Florida","Tallahassee",9,77.4366666666667
+"Florida","Tallahassee",10,71.8354838709677
+"Florida","Tallahassee",11,60.99
+"Florida","Tallahassee",12,55.0193548387097
+"Florida","Tampa St. Petersburg",1,65.7870967741935
+"Florida","Tampa St. Petersburg",2,67.9107142857143
+"Florida","Tampa St. Petersburg",3,69.1
+"Florida","Tampa St. Petersburg",4,76.2533333333333
+"Florida","Tampa St. Petersburg",5,79.9225806451613
+"Florida","Tampa St. Petersburg",6,81.2466666666667
+"Florida","Tampa St. Petersburg",7,83.3548387096774
+"Florida","Tampa St. Petersburg",8,84.0258064516129
+"Florida","Tampa St. Petersburg",9,82.1633333333333
+"Florida","Tampa St. Petersburg",10,77.1870967741935
+"Florida","Tampa St. Petersburg",11,70.9633333333333
+"Florida","Tampa St. Petersburg",12,66.4548387096774
+"Florida","West Palm Beach",1,68.9774193548387
+"Florida","West Palm Beach",2,70.8785714285714
+"Florida","West Palm Beach",3,70.541935483871
+"Florida","West Palm Beach",4,75.5866666666667
+"Florida","West Palm Beach",5,79.1935483870968
+"Florida","West Palm Beach",6,81.34
+"Florida","West Palm Beach",7,84.2193548387097
+"Florida","West Palm Beach",8,84.1677419354839
+"Florida","West Palm Beach",9,82.96
+"Florida","West Palm Beach",10,78.6967741935484
+"Florida","West Palm Beach",11,75.07
+"Florida","West Palm Beach",12,68.9709677419355

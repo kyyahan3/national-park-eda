@@ -1,0 +1,187 @@
+---
+title: "yahan yang data wrangling"
+output: github_document
+---
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(tidytext)
+library(textdata)
+library(ggplot2)
+library(assertr)
+library(lubridate)
+
+library(VIM)
+library(naniar)
+library(zoo)
+```
+
+temperature.csv
+weather_description.csv
+wind_direction.csv
+wind_speed.csv
+```{r message=FALSE}
+weather_description = read_csv("../../2_data/raw_data/weather_description.csv")
+temperature = read_csv("../../2_data/raw_data/temperature.csv")
+humidity = read_csv("../../2_data/raw_data/humidity.csv")
+wind_speed = read_csv("../../2_data/raw_data/wind_speed.csv")
+```
+
+For the weather datasets, we selected the columns of cities we are interested in, which are Denver, Miami, Jacksonville, Los Angeles, San Francisco and San Diego. Then split the datetime variable in to several columns from year, month to hour. We transformed the temperature data from Kelvin to Fahrenheit to make it easier to understand and interpret; extracted the top three frequently occurred weather description for each day; and decided not to use the wind direction data since it has little impact on visitation and biodiversity.
+
+We have the biodiversity data in 2017 and visitation from 1995 to 2017. we filter out the weather data in 2017 to join the former as our first master dataset and use the whole weather dataset (from 2012 to 2017) to join with the national park visitaion dataset. 
+
+
+
+#### clean data
+time period: 2012 to 2017
+
+1. temperature_clean
+```{r}
+temperature_clean <- temperature %>%
+  select("datetime","Denver", "Miami", "Jacksonville", "Los Angeles", "San Francisco", "San Diego" )
+
+# convert to Fahrenheit
+for (i in 2:7){
+  temperature_clean[,i] = round((temperature_clean[,i] - 273.15)*1.8 +32, 2)
+}
+
+temperature_clean <- temperature_clean %>%
+  mutate(year = year(datetime),
+                month = month(datetime),
+                day = day(datetime),
+         time = hour(datetime)) %>%
+  # filter(year == "2017") %>%
+  pivot_longer(`Denver`:`San Diego`, names_to = "City", values_to = "temperature") %>%
+  select(-c(datetime))
+# %>%
+#   group_by(year, month, day, City) %>%
+#   summarise(mean_temperature = round(mean(temperature, na.rm = TRUE), 2))
+
+
+temperature_clean
+```
+2. weather_description_clean
+```{r}
+weather_description_clean <- weather_description %>%
+  select("datetime","Denver", "Miami", "Jacksonville", "Los Angeles", "San Francisco", "San Diego" ) %>%
+  mutate(year = year(datetime),
+                month = month(datetime),
+                day = day(datetime),
+                time = hour(datetime)) %>%
+  # filter(year == "2017") %>%
+  pivot_longer(`Denver`:`San Diego`, names_to = "City", values_to = "weather_description") %>%
+  select(-c(datetime))
+
+weather_description_clean
+```
+3. wind_speed_clean
+```{r}
+wind_speed_clean <- wind_speed %>%
+  select("datetime","Denver", "Miami", "Jacksonville", "Los Angeles", "San Francisco", "San Diego" ) %>%
+  mutate(year = year(datetime),
+          month = month(datetime),
+          day = day(datetime),
+          time = hour(datetime)) %>%
+  # filter(year == "2017") %>%
+  pivot_longer(`Denver`:`San Diego`, names_to = "City", values_to = "wind_speed")  %>%
+  select(-c(datetime))
+# %>%
+#   group_by(year, month, day, City) %>%
+#   summarise(mean_wind_speed = round(mean(Wind_speed, na.rm = TRUE), 2))
+
+wind_speed_clean
+```
+
+4. humidity data
+```{r}
+humidity_clean <- humidity %>%
+  select("datetime","Denver", "Miami", "Jacksonville", "Los Angeles", "San Francisco", "San Diego" ) %>%
+  mutate(year = year(datetime),
+          month = month(datetime),
+          day = day(datetime),
+          time = hour(datetime)) %>%
+  # filter(year == "2017") %>%
+  pivot_longer(`Denver`:`San Diego`, names_to = "City", values_to = "humidity")  %>%
+  select(-c(datetime))
+
+humidity_clean
+```
+#### join and export dataset
+join_weather_12_17 and join_weather_17 dataset
+```{r}
+weather <- temperature_clean %>%
+  left_join(weather_description_clean,by = c("year","month","day","time", "City"))%>%
+  left_join(wind_speed_clean, by = c("year","month","day","time", "City")) %>%
+  left_join(humidity_clean, by = c("year","month","day","time", "City"))
+
+write.csv(weather,"join_weather_12_17.csv", row.names = FALSE)
+
+weather %>%
+  filter(year == "2017") %>%
+  write.csv("join_weather_17.csv", row.names = FALSE)
+```
+
+create weather data with state name initials and add a column for average temperature by month
+```{r}
+join_weather_17 <- read_csv("../../2_data/clean_data/join_weather_17_initial.csv")
+
+join_weather <- join_weather_17 %>%
+  group_by(year,month,City) %>%
+  mutate(avgtemp_by_month = mean(temperature))
+join_weather
+write.csv(join_weather, file="join_weather_2017.csv", row.names = FALSE)
+```
+
+
+### data validation
+1. weather data for 2017
+```{r, message = F, warning = F}
+weather_17 = read.csv("../../2_data/clean_data/join_weather_17.csv")
+
+gg_miss_var(weather_17)
+matrixplot(weather_17, sortby = "month")
+
+
+# which cities have the most missingness
+matrixplot(weather_17, sortby = "City")
+
+# create a variable that takes on a value of 1 if missing. 
+weather_17$missing <- 1
+weather_17$missing[weather_17$humidity!="NA"] <-0 
+
+# then group by the "missing" indicator
+weather_17 %>%
+  filter(missing == 1) %>%
+  group_by(City, missing) %>%
+  summarize(n = n()) %>% 
+  arrange(desc(n))
+
+```
+
+as we can see, all of the weather information columns have the same amount of missingness. From the second graph, we can tell that all the missingness happens just in November. According to the last graph and tibble, most of the missingnenss happens in San Francisco and Miami.
+
+
+2. weather data 
+```{r, message = F, warning = F}
+weather = read.csv("../../2_data/clean_data/join_weather_12_17.csv")
+
+gg_miss_var(weather)
+matrixplot(weather, sortby = "month")
+
+# take a look of humidity
+humidity <- weather %>% 
+  select(-c(temperature, weather_description, wind_speed))
+matrixplot(humidity, sortby = "City") # no
+matrixplot(humidity, sortby = "year") # no
+matrixplot(humidity, sortby = "month") # no
+matrixplot(humidity, sortby = "day") # no
+matrixplot(humidity, sortby = "time") # no
+
+
+```
+humidity has the most missingness in general, but we cannot tell the pattern. The reset variables have the same missingness pattern as the weather 2017 data.
+
+
+

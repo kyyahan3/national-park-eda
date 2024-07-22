@@ -1,0 +1,151 @@
+---
+title: "Creat Master Dataset Notebook yahan yang"
+output: github_document
+---
+```{r}
+# final master dataset
+park_weather_12_17 <- read.csv("https://www.dropbox.com/s/afzhasp96hvli1t/master_12_17.csv?dl=1")
+```
+
+```{r}
+# # joined park weather data for 2017 from joinVisits_toFinalClean.Rmd (form Sam)
+# # not use this one, but keep the link just in case
+# park_2017 <- read.csv("https://www.dropbox.com/s/2tttp0rlrxyxu5r/2017Master1.csv?dl=1")
+```
+
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+
+
+visitation <- read.csv("Visits for Desired Parks.csv")
+bio <- read.csv("final_weather_biodiversity.csv")
+# park <- read.csv("Cleaned-Parks-Data.csv")
+weather <- read.csv("join_weather_12_17.csv")
+```
+
+#### add the states
+```{r}
+# add the state initials variable
+ini <- bio %>% 
+  select(State.y, State_ini) %>% 
+  distinct()
+
+# read in the data to get state name for cities, get pairs for cities and states
+ct=read.csv("https://www.dropbox.com/s/g56s7ly9qijiucx/city_temperature.csv?dl=1")
+ct <- ct %>%
+  filter(Country=="US") %>% 
+  distinct(State, City, .keep_all = TRUE) %>% 
+  select(c("State","City"))
+```
+
+```{r}
+weather_ts <- weather %>% left_join(ct, by="City")  %>% 
+  replace_na(list("State" = "Florida"))%>% 
+  left_join(ini, by =c("State"="State.y")) %>% 
+  select(-c("weather_description"))%>% 
+  group_by(year, month, City) %>% 
+  mutate(avg_temperature = round(mean(temperature, na.rm = TRUE),2),
+            avg_wind_speed = round(mean(wind_speed, na.rm = TRUE),2),
+            avg_humidity = round(mean(humidity, na.rm = TRUE),2)) %>% 
+  unite("tmp", c("year", "month"), sep = "-",remove = FALSE) %>% 
+  mutate(date = as.Date(as.yearmon(tmp))) %>% 
+  select(-c(tmp))
+```
+```{r}
+cities <- c("Miami","Denver","Los Angeles","San Francisco")
+final <- visitation %>% 
+  filter(Year>2011) %>% 
+  left_join(weather_ts, by = c("Year"="year","Month"="month", "State" = "State_ini")) %>% 
+  filter(City %in% cities) %>% 
+  select(-ParkTypeTotal)
+```
+
+```{r, export csv}
+## this data set still have some issue the real final one will be created below
+# write.csv(final,"master_2012_2017.csv", row.names = FALSE)
+
+
+## master_2012_2017.csv link in dropbox, we will not use this for analysis
+## but keep the link just in case
+# park_weather_12_17 <- read.csv("https://www.dropbox.com/s/ndy4qkv76bsvd5d/master_2012_2017.csv?dl=1") 
+```
+```
+
+convert the data type (from Ji)
+```{r}
+park_weather_12_17 <- final
+park_weather_12_17$RecreationVisits <- asNumericChar(park_weather_12_17$RecreationVisits)
+park_weather_12_17$NonRecreationVisits <- asNumericChar(park_weather_12_17$NonRecreationVisits)
+park_weather_12_17$RecreationHours <- asNumericChar(park_weather_12_17$RecreationHours)
+park_weather_12_17$NonRecreationHours <- asNumericChar(park_weather_12_17$NonRecreationHours)
+park_weather_12_17$ConcessionerLodging <- asNumericChar(park_weather_12_17$ConcessionerLodging)
+park_weather_12_17$ConcessionerCamping <- asNumericChar(park_weather_12_17$ConcessionerCamping)
+park_weather_12_17$TentCampers <- asNumericChar(park_weather_12_17$TentCampers)
+park_weather_12_17$RVCampers <- asNumericChar(park_weather_12_17$RVCampers)
+park_weather_12_17$Backcountry <- asNumericChar(park_weather_12_17$Backcountry)
+park_weather_12_17$NonRecreationOvernightStays <- asNumericChar(park_weather_12_17$NonRecreationOvernightStays)
+park_weather_12_17$MiscellaneousOvernightStays <- asNumericChar(park_weather_12_17$MiscellaneousOvernightStays)
+park_weather_12_17$RecreationVisitsTotal <- asNumericChar(park_weather_12_17$RecreationVisitsTotal)
+park_weather_12_17$NonRecreationVisitsTotal <- asNumericChar(park_weather_12_17$NonRecreationVisitsTotal)
+park_weather_12_17$RecreationHoursTotal <- asNumericChar(park_weather_12_17$RecreationHoursTotal)
+park_weather_12_17$NonRecreationHoursTotal <- asNumericChar(park_weather_12_17$NonRecreationHoursTotal)
+park_weather_12_17$ConcessionerLodgingTotal <- asNumericChar(park_weather_12_17$ConcessionerLodgingTotal)
+park_weather_12_17$ConcessionerCampingTotal <- asNumericChar(park_weather_12_17$ConcessionerCampingTotal)
+park_weather_12_17$TentCampersTotal <- asNumericChar(park_weather_12_17$TentCampersTotal)
+park_weather_12_17$RVCampersTotal <- asNumericChar(park_weather_12_17$RVCampersTotal)
+park_weather_12_17$RVCampersTotal <- asNumericChar(park_weather_12_17$RVCampersTotal)
+park_weather_12_17$BackcountryTotal <- asNumericChar(park_weather_12_17$BackcountryTotal)
+park_weather_12_17$NonRecreationOvernightStaysTotal <- asNumericChar(park_weather_12_17$NonRecreationOvernightStaysTotal)
+park_weather_12_17$MiscellaneousOvernightStaysTotal <- asNumericChar(park_weather_12_17$MiscellaneousOvernightStaysTotal)
+
+park_weather_12_17
+write.csv(park_weather_12_17, file = “Master2012_2017.csv”, row.names = FALSE )
+```
+
+
+
+#### create final dataset 
+```{r}
+weather = read.csv("Master2012_2017.csv")
+```
+
+```{r}
+# fix that one park matches 2 cities (LA and San Francisco)
+ca_parks <- c("Channel Islands NP","Death Valley NP","Joshua Tree NP","Lassen Volcanic NP","Pinnacles NP","Redwood NP","Yosemite NP")
+la_parks <- c("Channel Islands NP","Death Valley NP","Joshua Tree NP")
+la <- weather %>% filter(ParkName == la_parks) %>% 
+  filter(City == "Los Angeles")
+
+# the ones in San Francisco
+sc <- weather %>% filter(!ParkName %in% la_parks) %>% 
+  filter(City == "San Francisco") 
+
+# the parks in the other places
+other <- weather %>%filter(!ParkName %in% ca_parks) 
+
+# combin them together
+new <- la %>% rbind(sc) %>% rbind(other)
+```
+
+```{r}
+new <- new %>% select(-c("date")) %>% 
+  unite("tmp", c("Year", "Month", "day"), sep = "-", remove = FALSE) %>% 
+  mutate(date = as.Date(tmp), YMdate = as.Date(as.yearmon(tmp))) %>% 
+  select(-c(tmp))%>% 
+  select(-c("ParkNameTotal":"YearTotal")) %>% 
+  rename("state_full" = "State.y")
+
+```
+
+```{r}
+write.csv(new, "master_12_17.csv", row.names = FALSE)
+```
+
+
+
+
+

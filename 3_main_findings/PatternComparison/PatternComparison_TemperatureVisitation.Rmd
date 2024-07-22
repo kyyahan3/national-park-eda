@@ -1,0 +1,180 @@
+---
+title: "viz temp visit"
+author: "Ji Noh"
+date: "2022-12-06"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+
+Reading the master data
+```{r}
+library(readr)
+df <- read_csv("https://www.dropbox.com/s/afzhasp96hvli1t/master_12_17.csv?dl=1")
+
+df
+```
+
+
+Now, we will filter out the visitation information from 2017
+```{r}
+
+visit <- df %>%
+  filter(Year == 2017) %>%
+  select(City,Year,Month,day,time,RecreationVisits, ParkName)
+
+visit
+```
+
+Now we will compare the temperatur pattern and visitation pattern for each city.
+
+```{r}
+#denver
+Denver <- df %>%
+  filter(City == "Denver") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature)
+
+den <- ggplot(Denver, aes(x=Month)) +
+  geom_line(aes(y =RecreationVisits/10000 , group=ParkName, col = ParkName), size=2) +
+  geom_boxplot(aes(y =temperature , group=Month), size=1) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "Temperature (Fahrenheit °)",
+    breaks = seq(0,100,20),  limits=c(0, 100),
+    # Add a second axis and specify its features
+    sec.axis = dup_axis(name = "Number of Visits in 10000")
+  ) +
+  ggtitle("2017 Denver Temerature and Visitation") +
+  guides(color = guide_legend(override.aes = list(size = 8) ) )+
+  scale_x_continuous(breaks = seq(0,12,1),  limits=c(0, 12))+
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+```
+
+```{r}
+#miami
+Miami <- df %>%
+  filter(City == "Miami") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature)
+
+mia <- ggplot(Miami, aes(x=Month)) +
+  geom_line(aes(y =RecreationVisits/10000 , group=ParkName, col = ParkName), size=2) +
+  geom_boxplot(aes(y =temperature , group=Month), size=1) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "Temperature (Fahrenheit °)",
+    breaks = seq(0,100,20),  limits=c(0, 100),
+    # Add a second axis and specify its features
+    sec.axis = dup_axis(name = "Number of Visits in 10000")
+  ) +
+  ggtitle("2017 Miami Temerature and Visitation") +
+  scale_x_continuous(breaks = seq(0,12,1),  limits=c(0, 12))+
+  guides(color = guide_legend(override.aes = list(size = 8) ) )+
+  theme_minimal()+
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+```
+
+
+```{r}
+#sf
+SF <- df %>%
+  filter(City == "San Francisco") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature)
+
+sf <- ggplot(SF, aes(x=Month)) +
+  geom_line(aes(y =RecreationVisits/10000 , group=ParkName, col = ParkName), size=2) +
+  geom_boxplot(aes(y =temperature , group=Month), size=1) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "Temperature (Fahrenheit °)",
+    breaks = seq(0,100,20),  limits=c(0, 100),
+    # Add a second axis and specify its features
+    sec.axis = dup_axis(name = "Number of Visits in 10000")
+  ) +
+  scale_x_continuous(breaks = seq(0,12,1),  limits=c(0, 12))+
+  ggtitle("2017 San Francisco Temerature and Visitation") +
+  guides(color = guide_legend(override.aes = list(size = 8) ) )+
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20)) 
+```
+
+
+```{r}
+#la
+LA <- df %>%
+  filter(City == "Los Angeles") %>%
+  filter(Year == 2017) %>%
+  select(Year,Month,day,time,RecreationVisits, ParkName, temperature)
+
+la <-ggplot(LA, aes(x=Month)) +
+  geom_line(aes(y =RecreationVisits/10000 , group=ParkName, col = ParkName), size=2 ) +
+  geom_boxplot(aes(y =temperature , group=Month),size=1) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "Temperature (Fahrenheit °)",
+    breaks = seq(0,100,20),  limits=c(0, 100),
+    # Add a second axis and specify its features
+    sec.axis = dup_axis(name = "Number of Visits in 10000")
+  ) +
+  scale_x_continuous(breaks = seq(0,12,1),  limits=c(0, 12))+
+  ggtitle("2017 Los Angeles Temerature and Visitation") +
+  guides(color = guide_legend(override.aes = list(size = 8) ) ) +
+  theme_minimal() +
+  theme(plot.title=element_text(size=40),
+        axis.title=element_text(size=30),
+        axis.text =element_text(size=30),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+```
+
+saving files
+```{r}
+library(gridExtra)
+grid.arrange(mia,den,la,sf)
+
+ggsave(filename = "miami_temp_and_visit.png",
+       plot = mia,
+       width = 15,
+       height = 15)
+ggsave(filename = "denver_temp_and_visit.png",
+       plot = den,
+       width = 15,
+       height = 15)
+ggsave(filename = "la_temp_and_visit.png",
+       plot = la,
+       width = 15,
+       height = 15)
+ggsave(filename = "sf_temp_and_visit.png",
+       plot = sf,
+       width = 15,
+       height = 15)
+
+ggsave(filename = "pattern_combined.png",
+       plot = grid.arrange(den,mia,la,sf),
+       width = 28,
+       height = 25)
+```
+
+
+
